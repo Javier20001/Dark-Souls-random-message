@@ -1,0 +1,16 @@
+{
+  "name": "dark-souls-messages",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dark-souls-messages": "file:",
+    "express": "^4.21.2"
+  }
+}
