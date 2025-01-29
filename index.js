@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const messageRoutes = require("./src/routes/messageRoute");
 require("dotenv").config({ path: "./src/config/.env" });
 
@@ -6,6 +7,7 @@ const app = express();
 
 // Middleware para manejar JSON
 app.use(express.json());
+app.use(cors());
 
 // Rutas
 app.use("/", messageRoutes);
