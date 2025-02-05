@@ -3,7 +3,7 @@ const {
   randomPositionFunction,
   randomPositionCategory,
 } = require("../utils/randomUtil");
-
+const Message = require("../models/messageModel");
 // Cargar datos desde el JSON
 const base = data.phrases.base;
 const characters = data.phrases.categories.characters;
@@ -27,6 +27,7 @@ const listWords = [
   concepts,
 ];
 
+// Generar un mensaje aleatorio
 function generateRandomMessage() {
   let rValue = base[Math.floor(Math.random() * base.length)];
   if (rValue.indexOf("****") !== -1) {
@@ -48,7 +49,42 @@ function generateRandomMessage() {
       listWords[randPosition][randomPositionCategory(randPosition, listWords)];
   }
 
+  console.log(rValue);
   return rValue;
 }
 
-module.exports = { generateRandomMessage };
+// Guardar un nuevo mensaje
+async function saveMessage() {
+  const text = generateRandomMessage();
+  const message = new Message({ text });
+  await message.save();
+}
+
+// Buscar un mensaje por ID
+async function fetchMessageById(id) {
+  const message = await Message.findById(id);
+  return message;
+}
+
+// Buscar todos los mensajes
+async function fetchMessages() {
+  const messages = await Message.find();
+  return messages;
+}
+
+// Buscar el último mensaje
+async function fetchLatestMessage() {
+  const latestMessage = await Message.findOne().sort({ _id: -1 });
+  return latestMessage;
+}
+
+// Guardar un mensaje cada 24 horas
+setInterval(saveMessage, 86400);
+
+module.exports = {
+  generateRandomMessage,
+  saveMessage,
+  fetchMessageById,
+  fetchMessages,
+  fetchLatestMessage,
+};
