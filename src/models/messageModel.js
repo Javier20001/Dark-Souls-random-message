@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const rateSchema = new mongoose.Schema({
   ip_user: {
-    type: Number,
+    type: String,
     required: true,
   },
   rate: {

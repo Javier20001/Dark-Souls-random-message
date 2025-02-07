@@ -78,6 +78,50 @@ async function fetchLatestMessage() {
   return latestMessage;
 }
 
+// Calificar un mensaje
+async function rateMessage(id, ip, rate) {
+  try {
+    // Buscar el mensaje por ID
+    const message = await Message.findById(id);
+    if (!message) {
+      const error = new Error("Message not found");
+      error.statusCode = 404; // Código 404 si el mensaje no existe
+      throw error;
+    }
+
+    // Verificar si el usuario ya calificó el mensaje
+    if (IalredyRated(ip, message.rates)) {
+      const error = new Error("User already rated this message");
+      error.statusCode = 409; // Código de estado HTTP 409 (Conflict)
+      throw error;
+    }
+
+    // Agregar nueva calificación al array `rates`
+    message.rates.push({
+      ip_user: ip, // Almacena la IP del usuario
+      rate: rate, // Almacena la calificación numérica
+    });
+
+    // Guardar cambios en la base de datos
+    await message.save();
+    console.log("Rating added successfully");
+  } catch (error) {
+    console.error("Error in rateMessage:", error);
+    if (!error.statusCode) error.statusCode = 500; // 🔹 Evita undefined en `statusCode`
+    throw error; // 🔹 No sobrescribas el error, simplemente relánzalo
+  }
+}
+
+function IalredyRated(ip, rates) {
+  let rated = false;
+  rates.forEach((rate) => {
+    if (rate.ip_user === ip) {
+      rated = true;
+    }
+  });
+  return rated;
+}
+
 // Guardar un mensaje cada 24 horas
 setInterval(saveMessage, 86400000); // 24 horas = 86,400,000 ms
 
@@ -87,4 +131,5 @@ module.exports = {
   fetchMessageById,
   fetchMessages,
   fetchLatestMessage,
+  rateMessage,
 };

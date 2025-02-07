@@ -10,6 +10,8 @@ const {
   sendServerMessage,
   getMessages,
   getLastMessage,
+  newMessage,
+  updateMessageRateById,
 } = require("../controllers/messageController");
 
 const router = express.Router();
@@ -56,5 +58,9 @@ router.get("/last-message", getLastMessage);
  * @param {callback} middleware - Express middleware
  */
 router.get("/", sendServerMessage);
+
+router.post("/new-message", newMessage);
+
+router.patch("/rate-message/:id", updateMessageRateById);
 
 module.exports = router;
