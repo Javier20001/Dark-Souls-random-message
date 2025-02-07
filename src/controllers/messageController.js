@@ -26,6 +26,7 @@ async function getMessages(req, res) {
 
 async function getLastMessage(req, res) {
   try {
+    console.log(req.ip)
     const messages = await fetchLatestMessage();
     res.json(messages);
   } catch (error) {

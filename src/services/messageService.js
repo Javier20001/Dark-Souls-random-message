@@ -79,7 +79,7 @@ async function fetchLatestMessage() {
 }
 
 // Guardar un mensaje cada 24 horas
-setInterval(saveMessage, 86400);
+setInterval(saveMessage, 86400000); // 24 horas = 86,400,000 ms
 
 module.exports = {
   generateRandomMessage,
