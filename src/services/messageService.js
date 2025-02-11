@@ -122,8 +122,31 @@ function IalredyRated(ip, rates) {
   return rated;
 }
 
+function getTimeUntilMidnight() {
+  const now = new Date();
+  const midnight = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+    0,
+    0,
+    0
+  );
+  return midnight - now;
+}
+
+function saveMessageAtMidnight() {
+  if (getTimeUntilMidnight() === 0) {
+    saveMessage();
+  } else {
+    console.log(
+      "falta " + getTimeUntilMidnight() + " ms para guardar un mensaje"
+    );
+  }
+}
+
 // Guardar un mensaje cada 24 horas
-setInterval(saveMessage, 86400000); // 24 horas = 86,400,000 ms
+setInterval(saveMessageAtMidnight, 60000); // 24 horas = 86,400,000 ms
 
 module.exports = {
   generateRandomMessage,
