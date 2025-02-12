@@ -49,14 +49,13 @@ async function newMessage(req, res) {
 async function updateMessageRateById(req, res) {
   try {
     const { id } = req.params;
-    const { rate } = req.body;
-    const ip = req.ip;
+    const { rate, idUser } = req.body;
 
     if (!id || !rate) {
       return res.status(400).send({ error: "ID and rate are required" });
     }
 
-    await rateMessage(id, ip, rate);
+    await rateMessage(id, idUser, rate);
 
     return res.status(200).send({ message: "Rated successfully" });
   } catch (error) {
