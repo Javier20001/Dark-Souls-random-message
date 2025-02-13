@@ -50,12 +50,13 @@ async function updateMessageRateById(req, res) {
   try {
     const { id } = req.params;
     const { rate, idUser } = req.body;
+    const { CallerId } = req.headers;
 
     if (!id || !rate) {
       return res.status(400).send({ error: "ID and rate are required" });
     }
 
-    await rateMessage(id, idUser, rate);
+    await rateMessage(id, idUser, rate, CallerId);
 
     return res.status(200).send({ message: "Rated successfully" });
   } catch (error) {

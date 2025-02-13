@@ -79,7 +79,7 @@ async function fetchLatestMessage() {
 }
 
 // Calificar un mensaje
-async function rateMessage(id, ip, rate) {
+async function rateMessage(id, userId, rate, userIdSafe) {
   try {
     // Buscar el mensaje por ID
     const message = await Message.findById(id);
@@ -90,15 +90,21 @@ async function rateMessage(id, ip, rate) {
     }
 
     // Verificar si el usuario ya calificó el mensaje
-    if (IalredyRated(ip, message.rates)) {
+    if (IalredyRated(userId, message.rates)) {
       const error = new Error("User already rated this message");
       error.statusCode = 409; // Código de estado HTTP 409 (Conflict)
       throw error;
     }
 
+    if (!comprovationId(userId, userIdSafe)) {
+      const error = new Error("User not authorized to rate this message");
+      error.statusCode = 401; // Código de estado HTTP 401 (Unauthorized)
+      throw error;
+    }
+
     // Agregar nueva calificación al array `rates`
     message.rates.push({
-      ip_user: ip, // Almacena la IP del usuario
+      ip_user: userId, // Almacena la IP del usuario
       rate: rate, // Almacena la calificación numérica
     });
 
@@ -143,6 +149,13 @@ function saveMessageAtMidnight() {
       "falta " + getTimeUntilMidnight() + " ms para guardar un mensaje"
     );
   }
+}
+
+function comprovationId(idUser, safeIdUser) {
+  if (idUser === safeIdUser) {
+    return true;
+  }
+  return false;
 }
 
 // Guardar un mensaje cada 24 horas
