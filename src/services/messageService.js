@@ -114,7 +114,7 @@ async function rateMessage(id, userId, rate, userIdSafe) {
       sum += rate.rate;
     });
     let average = sum / message.rates.length;
-    message.averageRate = average;
+    message.averageRate = Math.round(average);
 
     // Guardar cambios en la base de datos
     await message.save();
