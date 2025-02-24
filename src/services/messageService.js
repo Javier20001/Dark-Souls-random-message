@@ -108,6 +108,14 @@ async function rateMessage(id, userId, rate, userIdSafe) {
       rate: rate, // Almacena la calificación numérica
     });
 
+    //sumar todos los rates y dividir por la cantidad de rates
+    let sum = 0;
+    message.rates.forEach((rate) => {
+      sum += rate.rate;
+    });
+    let average = sum / message.rates.length;
+    message.averageRate = average;
+
     // Guardar cambios en la base de datos
     await message.save();
     console.log("Rating added successfully");

@@ -16,6 +16,10 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  averageRate: {
+    type: Number,
+    default: 0,
+  },
   rates: [rateSchema], // Usa el esquema directamente aquí
 });
 
