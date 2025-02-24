@@ -160,10 +160,7 @@ function saveMessageAtMidnight() {
 }
 
 function comprovationId(idUser, safeIdUser) {
-  if (idUser === safeIdUser) {
-    return true;
-  }
-  return false;
+  return idUser === safeIdUser;
 }
 
 // Guardar un mensaje cada 24 horas

@@ -50,7 +50,7 @@ async function updateMessageRateById(req, res) {
   try {
     const { id } = req.params;
     const { rate, idUser } = req.body;
-    const { CallerId } = req.headers;
+    const CallerId = req.headers["callerid"] || req.headers["caller-id"];
 
     if (!id || !rate) {
       return res.status(400).send({ error: "ID and rate are required" });
