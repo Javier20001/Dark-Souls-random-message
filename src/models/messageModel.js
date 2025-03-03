@@ -16,7 +16,7 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  averageRate: {
+  totalRates: {
     type: Number,
     default: 0,
   },
