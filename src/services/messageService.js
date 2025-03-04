@@ -31,7 +31,7 @@ const listWords = [
 // Generar un mensaje aleatorio
 function generateRandomMessage() {
   let rValue = base[Math.floor(Math.random() * base.length)];
-  
+
   // Reemplazar "****" con una palabra aleatoria de una categoría
   if (rValue.includes("****")) {
     let randPosition = randomPositionFunction(listWords);
@@ -51,7 +51,7 @@ function generateRandomMessage() {
       listWords[randPosition][randomPositionCategory(randPosition, listWords)];
   }
 
-  console.log(rValue);
+  console.log("Mensaje generado:", rValue);
   return rValue;
 }
 
@@ -60,6 +60,7 @@ async function saveMessage() {
   const text = generateRandomMessage();
   const message = new Message({ text });
   await message.save();
+  console.log("Mensaje guardado en la base de datos:", text);
 }
 
 // Buscar un mensaje por ID
@@ -87,12 +88,17 @@ async function rateMessage(id, userId, rate, userIdSafe) {
 
     // Verificar si el usuario ya ha calificado el mensaje
     if (IalredyRated(userId, message.rates)) {
-      throw Object.assign(new Error("User already rated this message"), { statusCode: 409 });
+      throw Object.assign(new Error("User already rated this message"), {
+        statusCode: 409,
+      });
     }
 
     // Verificar si el usuario está autorizado para calificar el mensaje
     if (!comprovationId(userId, userIdSafe)) {
-      throw Object.assign(new Error("User not authorized to rate this message"), { statusCode: 401 });
+      throw Object.assign(
+        new Error("User not authorized to rate this message"),
+        { statusCode: 401 }
+      );
     }
 
     // Agregar la calificación al mensaje
@@ -107,35 +113,25 @@ async function rateMessage(id, userId, rate, userIdSafe) {
 
 // Verificar si un usuario ya ha calificado un mensaje
 function IalredyRated(ip, rates) {
-  return rates.some(rate => rate.ip_user === ip);
+  return rates.some((rate) => rate.ip_user === ip);
 }
 
-// Calcular el tiempo restante hasta la 01:00 AM en Argentina (UTC-3)
-function getTimeUntilOneAM() {
+// Verificar si es las 17:00 en Argentina (UTC-3)
+function isFivePMArgentina() {
   const now = new Date();
-  const oneAMArgentina = new Date(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    4, // 4 AM UTC es 01:00 AM en Argentina
-    0,
-    0,
-    0
-  );
-
-  if (now.getUTCHours() >= 4) {
-    oneAMArgentina.setUTCDate(oneAMArgentina.getUTCDate() + 1);
-  }
-
-  return oneAMArgentina - now;
+  return now.getUTCHours() === 20 && now.getUTCMinutes() === 0;
 }
 
-// Programar la generación de un nuevo mensaje a la 01:00 AM en Argentina
-function scheduleOneAMMessage() {
-  setTimeout(async () => {
-    await saveMessage();
-    scheduleOneAMMessage(); // Reprogramar para la próxima ejecución
-  }, getTimeUntilOneAM());
+// Revisar cada minuto si es las 17:00 en Argentina y guardar un mensaje
+function startHourlyCheck() {
+  setInterval(async () => {
+    if (isFivePMArgentina()) {
+      console.log("Es las 17:00 en Argentina. Guardando mensaje...");
+      await saveMessage();
+    } else {
+      console.log("No es las 17:00 aún. Esperando...");
+    }
+  }, 60000); // Revisa cada 60 segundos
 }
 
 // Comprobar si dos IDs coinciden
@@ -143,8 +139,8 @@ function comprovationId(idUser, safeIdUser) {
   return idUser === safeIdUser;
 }
 
-// Iniciar la programación para guardar un mensaje a la 01:00 AM en Argentina
-scheduleOneAMMessage();
+// Iniciar la verificación
+startHourlyCheck();
 
 module.exports = {
   generateRandomMessage,
