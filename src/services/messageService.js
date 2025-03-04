@@ -4,6 +4,7 @@ const {
   randomPositionCategory,
 } = require("../utils/randomUtil");
 const Message = require("../models/messageModel");
+
 // Cargar datos desde el JSON
 const base = data.phrases.base;
 const characters = data.phrases.categories.characters;
@@ -30,7 +31,9 @@ const listWords = [
 // Generar un mensaje aleatorio
 function generateRandomMessage() {
   let rValue = base[Math.floor(Math.random() * base.length)];
-  if (rValue.indexOf("****") !== -1) {
+
+  // Reemplazar "****" con una palabra aleatoria de una categoría
+  if (rValue.includes("****")) {
     let randPosition = randomPositionFunction(listWords);
     rValue = rValue.replace(
       "****",
@@ -38,11 +41,10 @@ function generateRandomMessage() {
     );
   }
 
-  let boolean = Math.floor(Math.random() * 2);
-  if (boolean === 1) {
+  // Agregar conjugación y palabra adicional con 50% de probabilidad
+  if (Math.random() < 0.5) {
     let randPosition = randomPositionFunction(listWords);
-    rValue =
-      rValue +
+    rValue +=
       " " +
       conjugation[Math.floor(Math.random() * conjugation.length)] +
       " " +
@@ -53,7 +55,7 @@ function generateRandomMessage() {
   return rValue;
 }
 
-// Guardar un nuevo mensaje
+// Guardar un nuevo mensaje en la base de datos
 async function saveMessage() {
   const text = generateRandomMessage();
   const message = new Message({ text });
@@ -62,101 +64,80 @@ async function saveMessage() {
 
 // Buscar un mensaje por ID
 async function fetchMessageById(id) {
-  const message = await Message.findById(id);
-  return message;
+  return await Message.findById(id);
 }
 
-// Buscar todos los mensajes
+// Obtener todos los mensajes
 async function fetchMessages() {
-  const messages = await Message.find();
-  return messages;
+  return await Message.find();
 }
 
-// Buscar el último mensaje
+// Obtener el último mensaje guardado
 async function fetchLatestMessage() {
-  const latestMessage = await Message.findOne().sort({ _id: -1 });
-  return latestMessage;
+  return await Message.findOne().sort({ _id: -1 });
 }
 
 // Calificar un mensaje
 async function rateMessage(id, userId, rate, userIdSafe) {
   try {
-    // Buscar el mensaje por ID
     const message = await Message.findById(id);
     if (!message) {
-      const error = new Error("Message not found");
-      error.statusCode = 404; // Código 404 si el mensaje no existe
-      throw error;
+      throw Object.assign(new Error("Message not found"), { statusCode: 404 });
     }
 
-    // Verificar si el usuario ya calificó el mensaje
+    // Verificar si el usuario ya ha calificado el mensaje
     if (IalredyRated(userId, message.rates)) {
-      const error = new Error("User already rated this message");
-      error.statusCode = 409; // Código de estado HTTP 409 (Conflict)
-      throw error;
+      throw Object.assign(new Error("User already rated this message"), {
+        statusCode: 409,
+      });
     }
 
+    // Verificar si el usuario está autorizado para calificar el mensaje
     if (!comprovationId(userId, userIdSafe)) {
-      const error = new Error("User not authorized to rate this message");
-      error.statusCode = 401; // Código de estado HTTP 401 (Unauthorized)
-      throw error;
+      throw Object.assign(
+        new Error("User not authorized to rate this message"),
+        { statusCode: 401 }
+      );
     }
 
-    // Agregar nueva calificación al array `rates`
-    message.rates.push({
-      ip_user: userId, // Almacena la IP del usuario
-      rate: rate, // Almacena la calificación numérica
-    });
-
-    message.totalRates = message.rates.length > 0 ? message.rates.length : 0;
-    // Guardar cambios en la base de datos
+    // Agregar la calificación al mensaje
+    message.rates.push({ ip_user: userId, rate });
+    message.totalRates = message.rates.length;
     await message.save();
   } catch (error) {
     console.error("Error in rateMessage:", error);
-    if (!error.statusCode) error.statusCode = 500; // 🔹 Evita undefined en `statusCode`
-    throw error; // 🔹 No sobrescribas el error, simplemente relánzalo
+    throw error;
   }
 }
 
+// Verificar si un usuario ya ha calificado un mensaje
 function IalredyRated(ip, rates) {
-  let rated = false;
-  rates.forEach((rate) => {
-    if (rate.ip_user === ip) {
-      rated = true;
-    }
-  });
-  return rated;
+  return rates.some((rate) => rate.ip_user === ip);
 }
 
+// Calcular el tiempo restante hasta la medianoche
 function getTimeUntilMidnight() {
   const now = new Date();
-  const midnight = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1,
-    0,
-    0,
-    0
-  );
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
   return midnight - now;
 }
 
-function saveMessageAtMidnight() {
-  if (getTimeUntilMidnight() === 0) {
-    saveMessage();
-  } else {
-    console.log(
-      "falta " + getTimeUntilMidnight() + " ms para guardar un mensaje"
-    );
-  }
+// Programar la generación de un nuevo mensaje a la medianoche
+function scheduleMidnightMessage() {
+  setTimeout(async () => {
+    await saveMessage();
+    scheduleMidnightMessage(); // Reprogramar para la próxima medianoche
+  }, getTimeUntilMidnight());
 }
 
+// Comprobar si dos IDs coinciden
 function comprovationId(idUser, safeIdUser) {
   return idUser === safeIdUser;
 }
 
-// Guardar un mensaje cada 24 horas
-setInterval(saveMessageAtMidnight, 60000); // 24 horas = 86,400,000 ms
+// Iniciar la programación para guardar un mensaje a medianoche
+scheduleMidnightMessage();
 
 module.exports = {
   generateRandomMessage,
