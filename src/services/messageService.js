@@ -115,15 +115,27 @@ function IalredyRated(ip, rates) {
   return rates.some((rate) => rate.ip_user === ip);
 }
 
-// Calcular el tiempo restante hasta la medianoche
+// Calcular el tiempo restante hasta la medianoche en Argentina (UTC-3)
 function getTimeUntilMidnight() {
   const now = new Date();
-  const midnight = new Date(now);
-  midnight.setHours(24, 0, 0, 0);
-  return midnight - now;
+  const argentinaMidnight = new Date(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    3, // 3 AM UTC es medianoche en Argentina
+    0,
+    0,
+    0
+  );
+
+  if (now.getUTCHours() >= 3) {
+    argentinaMidnight.setUTCDate(argentinaMidnight.getUTCDate() + 1);
+  }
+
+  return argentinaMidnight - now;
 }
 
-// Programar la generación de un nuevo mensaje a la medianoche
+// Programar la generación de un nuevo mensaje a la medianoche en Argentina
 function scheduleMidnightMessage() {
   setTimeout(async () => {
     await saveMessage();
@@ -136,7 +148,7 @@ function comprovationId(idUser, safeIdUser) {
   return idUser === safeIdUser;
 }
 
-// Iniciar la programación para guardar un mensaje a medianoche
+// Iniciar la programación para guardar un mensaje a medianoche en Argentina
 scheduleMidnightMessage();
 
 module.exports = {
