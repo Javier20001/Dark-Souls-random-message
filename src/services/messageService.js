@@ -31,7 +31,7 @@ const listWords = [
 // Generar un mensaje aleatorio
 function generateRandomMessage() {
   let rValue = base[Math.floor(Math.random() * base.length)];
-
+  
   // Reemplazar "****" con una palabra aleatoria de una categoría
   if (rValue.includes("****")) {
     let randPosition = randomPositionFunction(listWords);
@@ -87,17 +87,12 @@ async function rateMessage(id, userId, rate, userIdSafe) {
 
     // Verificar si el usuario ya ha calificado el mensaje
     if (IalredyRated(userId, message.rates)) {
-      throw Object.assign(new Error("User already rated this message"), {
-        statusCode: 409,
-      });
+      throw Object.assign(new Error("User already rated this message"), { statusCode: 409 });
     }
 
     // Verificar si el usuario está autorizado para calificar el mensaje
     if (!comprovationId(userId, userIdSafe)) {
-      throw Object.assign(
-        new Error("User not authorized to rate this message"),
-        { statusCode: 401 }
-      );
+      throw Object.assign(new Error("User not authorized to rate this message"), { statusCode: 401 });
     }
 
     // Agregar la calificación al mensaje
@@ -112,35 +107,35 @@ async function rateMessage(id, userId, rate, userIdSafe) {
 
 // Verificar si un usuario ya ha calificado un mensaje
 function IalredyRated(ip, rates) {
-  return rates.some((rate) => rate.ip_user === ip);
+  return rates.some(rate => rate.ip_user === ip);
 }
 
-// Calcular el tiempo restante hasta la medianoche en Argentina (UTC-3)
-function getTimeUntilMidnight() {
+// Calcular el tiempo restante hasta la 01:00 AM en Argentina (UTC-3)
+function getTimeUntilOneAM() {
   const now = new Date();
-  const argentinaMidnight = new Date(
+  const oneAMArgentina = new Date(
     now.getUTCFullYear(),
     now.getUTCMonth(),
     now.getUTCDate(),
-    3, // 3 AM UTC es medianoche en Argentina
+    4, // 4 AM UTC es 01:00 AM en Argentina
     0,
     0,
     0
   );
 
-  if (now.getUTCHours() >= 3) {
-    argentinaMidnight.setUTCDate(argentinaMidnight.getUTCDate() + 1);
+  if (now.getUTCHours() >= 4) {
+    oneAMArgentina.setUTCDate(oneAMArgentina.getUTCDate() + 1);
   }
 
-  return argentinaMidnight - now;
+  return oneAMArgentina - now;
 }
 
-// Programar la generación de un nuevo mensaje a la medianoche en Argentina
-function scheduleMidnightMessage() {
+// Programar la generación de un nuevo mensaje a la 01:00 AM en Argentina
+function scheduleOneAMMessage() {
   setTimeout(async () => {
     await saveMessage();
-    scheduleMidnightMessage(); // Reprogramar para la próxima medianoche
-  }, getTimeUntilMidnight());
+    scheduleOneAMMessage(); // Reprogramar para la próxima ejecución
+  }, getTimeUntilOneAM());
 }
 
 // Comprobar si dos IDs coinciden
@@ -148,8 +143,8 @@ function comprovationId(idUser, safeIdUser) {
   return idUser === safeIdUser;
 }
 
-// Iniciar la programación para guardar un mensaje a medianoche en Argentina
-scheduleMidnightMessage();
+// Iniciar la programación para guardar un mensaje a la 01:00 AM en Argentina
+scheduleOneAMMessage();
 
 module.exports = {
   generateRandomMessage,
