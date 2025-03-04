@@ -116,31 +116,10 @@ function IalredyRated(ip, rates) {
   return rates.some((rate) => rate.ip_user === ip);
 }
 
-// Verificar si es las 17:00 en Argentina (UTC-3)
-function isFivePMArgentina() {
-  const now = new Date();
-  return now.getUTCHours() === 20 && now.getUTCMinutes() === 0;
-}
-
-// Revisar cada minuto si es las 17:00 en Argentina y guardar un mensaje
-function startHourlyCheck() {
-  setInterval(async () => {
-    if (isFivePMArgentina()) {
-      console.log("Es las 17:00 en Argentina. Guardando mensaje...");
-      await saveMessage();
-    } else {
-      console.log("No es las 17:00 aún. Esperando...");
-    }
-  }, 60000); // Revisa cada 60 segundos
-}
-
 // Comprobar si dos IDs coinciden
 function comprovationId(idUser, safeIdUser) {
   return idUser === safeIdUser;
 }
-
-// Iniciar la verificación
-startHourlyCheck();
 
 module.exports = {
   generateRandomMessage,
